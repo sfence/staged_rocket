@@ -12,3 +12,13 @@ function rocket.get_altitude(pos)
   return pos.y
 end
 
+function rocket.get_pressure(pos)
+  -- ph = p0 * e^((-den0*h*g)/p0)
+  -- ph - pressure in height y
+  -- p0 - pressure in height 0
+  -- den0 - density of air in height 0
+  -- h - height
+  -- g - gravity
+  return 1000*math.exp(-1.4*pos.y*80*9.81/1000)
+end
+

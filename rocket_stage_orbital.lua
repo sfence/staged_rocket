@@ -199,9 +199,9 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     engine_consume = 1, -- how much fuel engine consume
     engine_started = false,
     engine_restart = 1, -- energy for engine start
-    thrust = 1,
-    step_thrust = 0.05,
-    min_thrust = 0.8,
+    engine_thrust = 1,
+    engine_thrust_step = 0.05,
+    engine_thrust_min = 0.8,
     
     screen = true, -- screen is installed
     screen_sensors = true, -- sensors is installed
