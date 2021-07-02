@@ -87,23 +87,32 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
   object_coupling_ring = nil,
   
   stage = {
+    mass = 20000, -- stage mass
+    front_drag = 5,
+    side_drag = 10,
+    back_drag = 7,
+    
     fuel = 10000, -- volume of fuel
     consume_fuel = 1, -- fuel quality (higger value, more fuel is required for get same thrust
-    require_oxidant = 1, -- volume of oxidant required to burn 1 unit of fuel
+    require_oxidizer = 1, -- volume of oxidizer required to burn 1 unit of fuel
     max_fuel = 10000, -- fuel capacity
-    oxidizer = 30000, -- volume of oxidant
-    consume_oxidant = 1, -- oxidant quality (higger value, more oxidant is required for get same thrust)
+    density_fuel = 10, -- fuel density
+    oxidizer = 30000, -- volume of oxidizer
+    consume_oxidizer = 2, -- oxidizer quality (higger value, more oxidizer is required for get same thrust)
     max_oxidizer = 30000, -- oxidizer capacity
-    hull_integrity = nil,
-    item = "staged_rocket:rocket_stage_1",
+    density_oxidizer = 10, -- oxidizer density
+    hull_integrity = nil, -- hull integrity
+    max_hull = nil, -- max hull integrity
+    drop_disassemble = {}, -- drop if dissassemble
+    drop_destroy = {}, -- drop if destroyed
     
-    engine_power = 10, -- can be replaced by zero until engines will be installed
-    engine_consume = 1, -- how much fuel engine consume
+    engine_power = 2500000, -- can be replaced by zero until engines will be installed
+    engine_consume = 250, -- how much fuel engine consume
     engine_started = false, -- if engine is running
     engine_restart = 0, -- energy for engine start, 0 for one time startable engine
-    thrust = 1, -- actual engine thrust
-    step_thrust = 0.05, -- sensitivity of engine thurst change
-    min_thrust = 0.8, -- lowest settable thrust of engin
+    engine_thrust = 1, -- set engine thurst
+    engine_thrust_step = 0.05, -- engine step for thrust change
+    engine_thrust_min = 0.8, -- engine min settable thurst
     
     screen_sensors = true, -- sensors in installed
     screen_lidar_bottom = 50, -- lidar defined by range
@@ -213,7 +222,7 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
       end
 
       if self.hp <= 0 then
-        staged_rocket.destroy(self, false)
+        rocket.destroy(self, false)
       end
 
     end

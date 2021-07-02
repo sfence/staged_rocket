@@ -159,9 +159,19 @@ function rocket.contains(table, val)
   return false
 end
 
-function rocket.update_table(table_to, table_add)
+function rocket.update_table(table_to, table_add, manual)
   for key, value in pairs(table_add) do
-    table_to[key] = value
+    if (manual[key]=="add") then
+      table_to[key] = table_to[key] + value
+    elseif (manual[key]=="insert") then
+      table.insert(table_to[key], value)
+    elseif (manual[key]=="join") then
+      for _,val in pairs(value) do
+        table.insert(table_to[key], val)
+      end
+    else
+      table_to[key] = value
+    end
   end
 end
 

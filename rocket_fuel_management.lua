@@ -22,7 +22,7 @@ function rocket.update_fuel_pointer(self, stage)
     if (self.pointer_fuel==nil) or (self.pointer_fuel:get_luaentity()==nil) then
       self.pointer_fuel = minetest.add_entity(self.object:get_pos(),'staged_rocket:pointer_fuel')
     end
-    self.pointer_fuel:set_attach(self.object,'',rocket.GAUGE_FUEL_POSITION,{x=0,y=-indicator_angle+90,z=0})
+    self.pointer_fuel:set_attach(self.object,'',rocket.GAUGE_FUEL_POSITION,{x=0,y=indicator_angle-90,z=0})
 end
 
 function staged_rocket.load_fuel(self, player_name)

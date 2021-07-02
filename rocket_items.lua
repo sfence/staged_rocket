@@ -1,9 +1,22 @@
 
 local rocket = staged_rocket.rocket
 
+local update_manual = {
+  mass = "add",
+  side_surface = "add",
+  front_surface = "add",
+  drop_disassemble = "join",
+  drop_destroy = "join",
+}
+
 minetest.register_tool("staged_rocket:rocket_stage_1", {
   description = "Rocket Stage 1",
   inventory_image = "staged_rocket_rocket_stage_1.png",
+  
+  _stage = {
+    drop_disassemble = {"staged_rocket:rocket_stage_1"},
+    drop_destroy = {"default:steel_ingot"},
+  },
 
   on_place = function(itemstack, placer, pointed_thing)
     if (pointed_thing.type == "node") then
@@ -22,12 +35,11 @@ minetest.register_tool("staged_rocket:rocket_stage_1", {
           if staged_rocket.hull_deep_limit then
             ent.deep_limit = item_def.deep_limit
           end
-          rocket.update_table(ent.stage, item_def._stage)
+          rocket.update_table(ent.stage, item_def._stage, update_manual)
           local wear = (65535-itemstack:get_wear())/65535
           if item_def._stage.hull_integrity then
             ent.stage.hull_integrity = item_def._stage.hull_integrity*wear
           end
-          ent.item = itemstack:to_string()
           boat:set_yaw(placer:get_look_horizontal())
           itemstack:take_item()
 

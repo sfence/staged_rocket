@@ -22,7 +22,7 @@ function rocket.update_oxidizer_pointer(self, stage)
     if (self.pointer_oxidizer==nil) or (self.pointer_oxidizer:get_luaentity()==nil) then
       self.pointer_oxidizer = minetest.add_entity(self.object:get_pos(),'staged_rocket:pointer_oxidizer')
     end
-    self.pointer_oxidizer:set_attach(self.object,'',rocket.GAUGE_OXIDIZER_POSITION,{x=0,y=-indicator_angle+90,z=0})
+    self.pointer_oxidizer:set_attach(self.object,'',rocket.GAUGE_OXIDIZER_POSITION,{x=0,y=indicator_angle-90,z=0})
 end
 
 function staged_rocket.load_oxidant(self, player_name)

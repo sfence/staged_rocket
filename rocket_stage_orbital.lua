@@ -162,7 +162,6 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
   color = "#ffe400",
   timeout = 0;
   max_hp = 50,
-  physics = staged_rocket.physics,
   --water_drag = 0,
   breath_time = 0,
   drown_time = 0,
@@ -179,29 +178,38 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
   pointer_battery = nil,
   
   stage = {
+    mass = 15000,
+    front_drag = 4,
+    side_drag = 10,
+    back_drag = 6,
+    
     fuel = 5000,
     consume_fuel = 1,
-    require_oxidizer = 1,
+    require_oxidizer = 2,
     max_fuel = 5000,
+    density_fuel = 10,
     oxidizer = 15000,
     consume_oxidizer = 1,
     max_oxidizer = 15000,
+    density_oxidizer = 10,
     air = rocket.STAGE_ORBITAL_REAIR_ON_AIR, -- air for crew
     max_air = 3600,
+    density_air = 1,
     battery = 60,
     max_battery = 60,
     hull_integrity = nil,
+    max_hull = nil,
     gear_limit = 600, -- max damage which gear is able to absorb
-    drop_disassemble = {"staged_rocket:rocket_stage_orbital"},
-    drop_destroy = {"default:steel_ingot"},
+    drop_disassemble = {},
+    drop_destroy = {},
     
-    engine_power = 10, -- can be replaced by zero until engines will be installed
-    engine_consume = 1, -- how much fuel engine consume
-    engine_started = false,
+    engine_power = 100000, -- can be replaced by zero until engines will be installed
+    engine_consume = 100, -- how much fuel engine consume
+    engine_started = false, -- is engine started?
     engine_restart = 1, -- energy for engine start
-    engine_thrust = 1,
-    engine_thrust_step = 0.05,
-    engine_thrust_min = 0.8,
+    engine_thrust = 1, -- set engine thurst
+    engine_thrust_step = 0.05, -- engine step for thrust change
+    engine_thrust_min = 0.8, -- engine min settable thurst
     
     screen = true, -- screen is installed
     screen_sensors = true, -- sensors is installed
@@ -309,7 +317,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     elseif (angle>(0.6*math.pi)) then
       box = -2.20
       if self.data_stage_1 then
-        box = -8.5
+        box = -8.0
       end
     end
     if (self.box~=box) then
@@ -376,11 +384,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
         end
       end
       --control
-      curr_rot, curr_acc = rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)
-      
-      self.object:set_acceleration(curr_acc)
-      --print(dump(curr_acc))
-      --print(dump(curr_vel))
+      curr_rot, curr_acc = rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)  
     else
       -- for some engine error the player can be detached from the submarine, so lets set him attached again
       local can_stop = true
@@ -405,7 +409,6 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     if is_attached then
       if (self.stage.air > 0) then
         self.stage.air = self.stage.air - dtime;
-        rocket.update_air_pointer(self, self.stage)
         
         self.breath_time = self.breath_time + dtime
         if (self.breath_time>=0.5) then
@@ -447,7 +450,23 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
         end
       end
     end
-
+    
+    if self.data_stage_1 then
+      rocket.update_fuel_pointer(self, self.data_stage_1)
+      rocket.update_oxidizer_pointer(self, self.data_stage_1)
+    else
+      rocket.update_fuel_pointer(self, self.stage)
+      rocket.update_oxidizer_pointer(self, self.stage)
+    end
+    rocket.update_air_pointer(self, self.stage)
+    rocket.update_battery_pointer(self, self.stage)
+    
+    curr_acc, curr_rot = rocket.physics(self, dtime, curr_acc, curr_rot)
+    
+    self.object:set_acceleration(curr_acc)
+    --self.object:set_rotation(curr_rot)
+    --print(dump(curr_acc))
+    --print(dump(curr_vel))
   end,
 
   on_punch = function(self, puncher, ttime, toolcaps, dir, damage)

@@ -28,8 +28,15 @@ minetest.register_entity("staged_rocket:rocket_coupling_ring", {
   is_attached = false,
   
   stage = {
-    item = "staged_rocket:rocket_coupling_ring",
+    mass = 1000,
+    front_drag = 0.1,
+    side_drag = 1,
+    back_drag = 0.1,
+    
+    drop_disassemble = {},
+    drop_destroy = {},
     hull_integrity = nil,
+    max_hull = nil,
   },
   
   get_staticdata = function(self)
@@ -136,7 +143,7 @@ minetest.register_entity("staged_rocket:rocket_coupling_ring", {
       end
 
       if self.hp <= 0 then
-        staged_rocket.destroy(self, false)
+        rocket.destroy(self, false)
       end
 
     end

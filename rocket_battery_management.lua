@@ -22,7 +22,7 @@ function rocket.update_battery_pointer(self, stage)
     if (self.pointer_battery==nil) or (self.pointer_battery:get_luaentity()==nil) then
       self.pointer_battery = minetest.add_entity(self.object:get_pos(),'staged_rocket:pointer_battery')
     end
-    self.pointer_battery:set_attach(self.object,'',rocket.GAUGE_BATTERY_POSITION,{x=0,y=indicator_angle-90,z=0})
+    self.pointer_battery:set_attach(self.object,'',rocket.GAUGE_BATTERY_POSITION,{x=0,y=-indicator_angle+90,z=0})
 end
 
 function rocket.load_battery(self, player_name)

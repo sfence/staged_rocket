@@ -92,14 +92,23 @@ function rocket.update_screen(self)
     --end
     
     if stage.screen_sensors then
+      if (sensors==nil) then
+        sensors = "^[combine:64x64"
+      end
       local color = "FF0000"
       if (engine_stage.engine_power>0) then
+        color = "0094FF"
+      end
+      if engine_stage.engine_started then
         color = "00FF00"
       end
       if (self.data_coupling_ring~=nil) and (self.data_stage_1==nil) then
         color = "FFA600"
       end
       screen = screen .. "^(staged_rocket_rocket_screen_E.png^[multiply:#"..color..")"
+      -- thrust shower
+      local drawy = 31 - math.floor(6*(engine_stage.engine_thrust-engine_stage.engine_thrust_min)/(1-engine_stage.engine_thrust_min)+0.5)
+      sensors = sensors .. ":8,"..drawy.."=staged_rocket_rocket_screen_vertical_pointer.png"
     end
     
     if stage.screen_speedometer then

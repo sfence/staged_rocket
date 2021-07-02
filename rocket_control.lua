@@ -26,6 +26,10 @@ function rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)
   
   -- player control
   if player then
+    local engine_stage = self.stage
+    if self.data_stage_1 then
+      engine_stage = self.data_stage_1
+    end
     local ctrl = player:get_player_control()
     if ctrl.up then
       local forward = vector.rotate({x=0,y=0,z=1},curr_rot)
@@ -51,47 +55,35 @@ function rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)
       forward = vector.rotate_around_axis(forward, up, -1*dtime)
       rot = vector.dir_to_rotation(forward, up)
     end
-    if ctrl.jump then
-      local forward = vector.rotate({x=0,y=1,z=0},curr_rot)
-      local engine = vector.multiply(forward, 11)
-      acc = vector.add(acc, engine)
-      local thrust = vector.multiply(forward, -1)
-      local minmaxpos = vector.add(curr_pos, vector.multiply(forward, -8))
-      local minvel = vector.add(vector.add({x=-0.2,y=0,z=-0.2}, curr_vel), thrust)
-      local maxvel = vector.add(vector.add({x=0.3,y=0.3,z=0.3}, curr_vel), thrust)
-      local minacc = vector.multiply(thrust, 1)
-      local maxacc = vector.multiply(thrust, 5)
-      minetest.add_particlespawner({
-        amount = 3, --1,
-        time = 0.2, --0.1,
-        minpos = minmaxpos,
-        maxpos = minmaxpos,
-        minvel = minvel,
-        maxvel = minvel,
-        minacc = minacc,
-        maxacc = maxacc,
-        minexptime = 1,
-        maxexptime = 2.5,
-        minsize = 4, --1,
-        maxsize = 10, --4,
-        texture = "staged_rocket_rocket_smoke.png",
-      })
-      
-      minetest.add_particlespawner({
-        amount = 1, --1,
-        time = 1.0, --0.1,
-        minpos = minmaxpos,
-        maxpos = minmaxpos,
-        minvel = minvel,
-        maxvel = maxvel,
-        minacc = minacc,
-        maxacc = maxacc,
-        minexptime = 0.25, --1
-        maxexptime = 0.75, --2.5,
-        minsize = 14, --1,
-        maxsize = 16, --4,
-        texture = "staged_rocket_rocket_boom.png",
-      })
+    if engine_stage.engine_started then
+      if ctrl.sneak and ctrl.aux1 then
+        engine_stage.engine_started = false
+        if (engine_stage.engine_restart==0) then
+          engine_stage.engine_power = 0
+        end
+      end
+    else
+      if ctrl.jump and ctrl.aux1 then
+        if (engine_stage.engine_power > 0) and (self.stage.battery >= engine_stage.engine_restart) then
+          self.stage.battery = self.stage.battery - engine_stage.engine_restart
+          if (engine_stage.fuel>0) and (engine_stage.oxidizer>0) then
+            engine_stage.engine_started = true
+          end
+        end
+      end
+    end
+    if (not ctrl.aux1) then
+      if ctrl.jump then
+        engine_stage.engine_thrust = engine_stage.engine_thrust + engine_stage.engine_thrust_step*dtime
+        if (engine_stage.engine_thrust>1) then
+          engine_stage.engine_thrust = 1
+        end
+      elseif ctrl.sneak then
+        engine_stage.engine_thrust = engine_stage.engine_thrust - engine_stage.engine_thrust_step*dtime
+        if (engine_stage.engine_thrust<engine_stage.engine_thrust_min) then
+          engine_stage.engine_thrust = engine_stage.engine_thrust_min
+        end
+      end
     end
   end
   return rot, acc

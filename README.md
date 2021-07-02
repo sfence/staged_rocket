@@ -1,4 +1,4 @@
-Dirigible rocket
+Staged rocket
 ========================================
 
 This mod is delivered from nautilus mod by APercy.
