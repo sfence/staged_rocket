@@ -24,7 +24,7 @@ local function attach_player(self, player)
 
   -- attach the driver
   player:set_attach(self.object, "", {x = 0, y = 14, z = 4}, {x = -90, y = 0, z = 0})
-  player:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0.1, y = 0.1, z = 0.1})
+  player:set_eye_offset({x = 0, y = 0, z = -3})
   player:set_look_vertical(-math.pi/2)
   player:set_look_horizontal(1.75*math.pi)
   player_api.player_attached[name] = true
@@ -96,13 +96,55 @@ local function stage_destroy(self, overload)
   rocket.destroy(self, overload)
 end
 
+-- decouple stage 1
+local function decouple_stage_1(self)
+  local pos = self.object:get_pos()
+  local rot = self.object:get_rotation()
+  local vel = self.object:get_velocity()
+  local dir = vector.rotate(vector.new(0,1,0), rot)
+  local stage_1 = self.object_stage_1
+  self.data_stage_1 = nil
+  self.object_stage_1 = nil
+  stage_1:set_detach()
+  stage_1:get_luaentity().is_attached = false
+  stage_1:set_pos(vector.add(pos, vector.multiply(dir, -6)))
+  stage_1:set_rotation(rot)
+  
+  local stage_1_mass = rocket.get_mass(stage_1:get_luaentity())
+  local mass = rocket.get_mass(self)
+  
+  stage_1:set_velocity(vector.add(vel, vector.multiply(dir, -rocket.DECOUPLE_ENERGY/stage_1_mass)))
+  self.object:set_velocity(vector.add(vel, vector.multiply(dir, rocket.DECOUPLE_ENERGY/mass)))
+end
+
+-- decouple coupling ring
+local function decouple_coupling_ring(self)
+  local pos = self.object:get_pos()
+  local rot = self.object:get_rotation()
+  local vel = self.object:get_velocity()
+  local dir = vector.rotate(vector.new(0,1,0), rot)
+  local ring = self.object_coupling_ring
+  self.data_coupling_ring = nil
+  self.object_coupling_ring = nil
+  ring:set_detach()
+  ring:get_luaentity().is_attached = false
+  ring:set_pos(vector.add(pos, vector.multiply(dir, -6)))
+  ring:set_rotation(rot)
+  
+  local ring_mass = rocket.get_mass(ring:get_luaentity())
+  local mass = rocket.get_mass(self)
+  
+  ring:set_velocity(vector.add(vel, vector.multiply(dir, -rocket.DECOUPLE_ENERGY/ring_mass)))
+  self.object:set_velocity(vector.add(vel, vector.multiply(dir, rocket.DECOUPLE_ENERGY/mass)))
+end
+
 -- norespawn in rocket when death
 minetest.register_on_dieplayer(function(player, reason)
     local name = player:get_player_name()
     local object = rocket_attached[name]
     if object then
       local entity = object:get_luaentity()
-      if (entity.name=="staged_rocket:rocket_stage_orbital") then
+      if entity and (entity.name=="staged_rocket:rocket_stage_orbital") then
         if (entity.driver_name == name) then
           player:set_detach()
           entity.driver_name = nil
@@ -152,6 +194,9 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
       "staged_rocket_rocket_glass.png" --glass
     },
   },
+  decouple_stage_1 = decouple_stage_1,
+  decouple_coupling_ring = decouple_coupling_ring,
+  
   textures = {},
   driver_name = nil,
   sound_handle = nil,
@@ -166,6 +211,8 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
   breath_time = 0,
   drown_time = 0,
   sound_time = 0,
+  
+  last_vel = vector.new(0,0,0),
   
   data_stage_1 = nil,
   object_stage_1 = nil,
@@ -185,7 +232,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     
     fuel = 5000,
     consume_fuel = 1,
-    require_oxidizer = 2,
+    require_oxidizer = 3,
     max_fuel = 5000,
     density_fuel = 10,
     oxidizer = 15000,
@@ -197,19 +244,19 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     density_air = 1,
     battery = 60,
     max_battery = 60,
-    hull_integrity = nil,
-    max_hull = nil,
+    hull_integrity = 100,
+    max_hull = 100,
     gear_limit = 600, -- max damage which gear is able to absorb
     drop_disassemble = {},
     drop_destroy = {},
     
-    engine_power = 100000, -- can be replaced by zero until engines will be installed
-    engine_consume = 100, -- how much fuel engine consume
+    engine_power = 1500000, -- can be replaced by zero until engines will be installed
+    engine_consume = 150, -- how much fuel engine consume
     engine_started = false, -- is engine started?
     engine_restart = 1, -- energy for engine start
     engine_thrust = 1, -- set engine thurst
     engine_thrust_step = 0.05, -- engine step for thrust change
-    engine_thrust_min = 0.8, -- engine min settable thurst
+    engine_thrust_min = 0.13, -- engine min settable thurst
     
     screen = true, -- screen is installed
     screen_sensors = true, -- sensors is installed
@@ -251,6 +298,8 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
       if data.data_stage_1 then
         rocket.restore_stage_1(self, data.data_stage_1, dtime_s)
       end
+      
+      self.last_vel = self.object:get_velocity()
     end
 
     --staged_rocket.paint(self, self.color)
@@ -344,15 +393,42 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     end
     --]]
     
-    rocket.update_screen(self, curr_rot, curr_dir, curr_vel)
+    local on_grear = false
+    local no_rotate = moveresult.collides
     
-    if moveresult.collides and self.stage.hull_integrity then
-      print(dump(moveresult))
-      for collision in moveresult.collisions do
-        local diff = vector.length(collision.old_velocity) - vector.length(collision.new_velocity)
-        local damage = diff*rocket.COLLISION_SPEED_DAMAGE
+    if moveresult.collides then
+      --print(dump(moveresult))
+      local gear_damage = 0
+      local damage = 0
+      for _, collision in pairs(moveresult.collisions) do
+        local diff = vector.subtract(self.last_vel, collision.new_velocity)
+        local collvec = nil
+        if (collision.type=="node") then
+          collvec = vector.subtract(collision.node_pos, curr_pos)
+        else
+          collvec = vector.subtract(collision.object:get_pos(), curr_pos)
+        end
+        local angle = vector.angle(curr_dir, collvec)
+        if (angle>(0.6*math.pi)) then
+          gear_damage = gear_damage + vector.length(diff)*rocket.COLLISION_SPEED_DAMAGE
+          on_gear = true
+        else
+          damage = damage + vector.length(diff)*rocket.COLLISION_SPEED_DAMAGE
+        end
+      end
+      if self.stage.hull_integrity then
+        if (gear_damage>self.stage.gear_limit) then
+          damage = damage  + gear_damage - self.stage.gear_limit
+          self.gear_limit = 0
+        end
+        self.stage.hull_integrity = self.stage.hull_integrity - damage
+        if (damage>0) then
+          print("hull_integrity: "..self.stage.hull_integrity.." damage: "..damage.." gear: "..gear_damage)
+        end
       end
     end
+    
+    rocket.update_screen(self, curr_rot, curr_dir, curr_vel, on_gear)
     
     if is_attached then
       local impact = 0
@@ -464,9 +540,11 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     curr_acc, curr_rot = rocket.physics(self, dtime, curr_acc, curr_rot)
     
     self.object:set_acceleration(curr_acc)
-    --self.object:set_rotation(curr_rot)
+    self.object:set_rotation(curr_rot)
     --print(dump(curr_acc))
     --print(dump(curr_vel))
+    
+    self.last_vel = self.object:get_velocity()
   end,
 
   on_punch = function(self, puncher, ttime, toolcaps, dir, damage)

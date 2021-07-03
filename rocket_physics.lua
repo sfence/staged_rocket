@@ -4,36 +4,15 @@ local rocket = staged_rocket.rocket
 local min = math.min
 local abs = math.abs
 
-local function get_mass(self)
-  local mass = self.stage.mass
-  if self.stage.fuel and (self.stage.fuel>0) then
-    mass = mass + self.stage.fuel * self.stage.density_fuel
-  end
-  if self.stage.oxidizer and (self.stage.oxidizer>0) then
-    mass = mass + self.stage.oxidizer * self.stage.density_oxidizer
-  end
-  if self.stage.air and (self.stage.air>0) then
-    mass = mass + self.stage.air * self.stage.density_air
-  end
-  return mass
-end
-local function get_key_sum(self, key)
-  local sum = self.stage[key]
-  if self.data_coupling_ring then
-    sum = sum + self.data_coupling_ring[key]
-  end
-  if self.data_stage_1 then
-    sum = sum + self.data_stage_1[key]
-  end
-  
-  return sum
-end
-local three_engines = {
+local get_mass = rocket.get_mass
+local get_key_sum = rocket.get_key_sum
+
+local stage_orbital_engines = {
   vector.new( 0   , 0 ,-0.5), -- 0, 5
   vector.new( 0.433, 0 , 0.25),-- 0.433, 2.5
   vector.new(-0.433, 0 , 0,25)
 }
-local five_engines = {
+local stage_1_engines = {
   vector.new( 0.7 , 0, 0.0), -- 0, 7
   vector.new( 0.22, 0, 0.67),
   vector.new( -0.56, 0,0.41),
@@ -42,10 +21,10 @@ local five_engines = {
 }
 local function engine_particles(self, thrust, curr_pos, curr_rot, curr_dir, curr_vel)
   local offset = -3.2
-  local engines = three_engines
+  local engines = stage_orbital_engines
   if self.data_stage_1 then
     offset = -9
-    engines = five_engines
+    engines = stage_1_engines
   end
   for _,engine in pairs(engines) do
     engine = vector.rotate(engine, curr_rot)

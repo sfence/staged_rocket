@@ -159,6 +159,38 @@ function rocket.contains(table, val)
   return false
 end
 
+function rocket.get_mass(self)
+  local mass = self.stage.mass
+  if self.stage.fuel and (self.stage.fuel>0) then
+    mass = mass + self.stage.fuel * self.stage.density_fuel
+  end
+  if self.stage.oxidizer and (self.stage.oxidizer>0) then
+    mass = mass + self.stage.oxidizer * self.stage.density_oxidizer
+  end
+  if self.stage.air and (self.stage.air>0) then
+    mass = mass + self.stage.air * self.stage.density_air
+  end
+  if self.data_coupling_ring then
+    mass = mass + self.data_coupling_ring.mass
+  end
+  if self.data_stage_1 then
+    mass = mass + self.data_stage_1.mass
+  end
+  return mass
+end
+
+function rocket.get_key_sum(self, key)
+  local sum = self.stage[key]
+  if self.data_coupling_ring then
+    sum = sum + self.data_coupling_ring[key]
+  end
+  if self.data_stage_1 then
+    sum = sum + self.data_stage_1[key]
+  end
+  
+  return sum
+end
+
 function rocket.update_table(table_to, table_add, manual)
   for key, value in pairs(table_add) do
     if (manual[key]=="add") then

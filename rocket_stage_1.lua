@@ -72,12 +72,10 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
   sound_handle = nil,
   static_save = true,
   infotext = "A nice rocket stage 1",
-  lastvelocity = vector.new(),
   hp = 50,
   color = "#ffe400",
   timeout = 0;
   max_hp = 50,
-  physics = staged_rocket.physics,
   --water_drag = 0,
   breath_time = 0,
   drown_time = 0,
@@ -98,7 +96,7 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
     max_fuel = 10000, -- fuel capacity
     density_fuel = 10, -- fuel density
     oxidizer = 30000, -- volume of oxidizer
-    consume_oxidizer = 2, -- oxidizer quality (higger value, more oxidizer is required for get same thrust)
+    consume_oxidizer = 3, -- oxidizer quality (higger value, more oxidizer is required for get same thrust)
     max_oxidizer = 30000, -- oxidizer capacity
     density_oxidizer = 10, -- oxidizer density
     hull_integrity = nil, -- hull integrity
@@ -150,8 +148,40 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
     self.object:set_armor_groups({immortal=1})
   end,
 
-  on_step = function(self, dtime)
+  on_step = function(self, dtime, moveresult)
+    if self.is_attached then
+      return
+    end
+    local curr_pos = self.object:get_pos()
+    local curr_rot = self.object:get_rotation()
+    local curr_vel = self.object:get_velocity()
+    local curr_acc = rocket.get_gravity_vector(curr_pos)
     
+    -- update collision box
+    local curr_dir = vector.rotate({x=0,y=1,z=0},curr_rot)
+    local angle = vector.angle(curr_dir, vector.add(curr_vel, vector.multiply(curr_acc, dtime)))
+    local box = 0
+    if (angle<(0.4*math.pi)) then
+      box = 2.5
+      if self.data_coupling_ring then
+        box = 3
+      end
+    elseif (angle>(0.6*math.pi)) then
+      box = -2
+    end
+    if (self.box~=box) then
+      print("box: "..box.." angle: "..angle)
+      local move = vector.multiply(curr_dir, box)
+      local props = self.object:get_properties()
+      props.collisionbox = {-1+move.x,-1+move.y,-1+move.z,1+move.x,1+move.y,1+move.z}
+      self.object:set_properties(props)
+      self.box = box
+    end
+    
+    curr_acc, curr_rot = rocket.physics(self, dtime, curr_acc, curr_rot)
+    
+    self.object:set_acceleration(curr_acc)
+    --self.object:set_rotation(curr_rot)
   end,
 
   on_punch = function(self, puncher, ttime, toolcaps, dir, damage)

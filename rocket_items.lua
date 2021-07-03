@@ -57,6 +57,11 @@ minetest.register_tool("staged_rocket:rocket_stage_1", {
 minetest.register_tool("staged_rocket:rocket_coupling_ring", {
   description = "Rocket Coupling Ring",
   inventory_image = "staged_rocket_rocket_coupling_ring.png",
+  
+  _stage = {
+    drop_disassemble = {"staged_rocket:rocket_coupling_ring"},
+    drop_destroy = {"default:steel_ingot"},
+  },
 
   on_place = function(itemstack, placer, pointed_thing)
     if (pointed_thing.type == "object") then
@@ -83,7 +88,6 @@ minetest.register_tool("staged_rocket:rocket_coupling_ring", {
           if item_def.hull_integrity then
             ent.hull_integrity = item_def.hull_integrity*wear
           end
-          ent.item = itemstack:to_string()
           boat:set_yaw(placer:get_look_horizontal())
           itemstack:take_item()
 
@@ -101,6 +105,11 @@ minetest.register_tool("staged_rocket:rocket_coupling_ring", {
 minetest.register_tool("staged_rocket:rocket_stage_orbital", {
   description = "Rocket orbital stage",
   inventory_image = "staged_rocket_rocket_stage_orbital.png",
+  
+  _stage = {
+    drop_disassemble = {"staged_rocket:rocket_stage_orbital"},
+    drop_destroy = {"default:steel_ingot"},
+  },
   
   on_place = function(itemstack, placer, pointed_thing)
     if (pointed_thing.type == "node") then
@@ -123,7 +132,6 @@ minetest.register_tool("staged_rocket:rocket_stage_orbital", {
           if item_def.hull_integrity then
             ent.stage.hull_integrity = item_def.hull_integrity*wear
           end
-          ent.item = itemstack:to_string()
           boat:set_yaw(placer:get_look_horizontal())
           itemstack:take_item()
 

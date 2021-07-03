@@ -27,7 +27,7 @@ end
 
 function rocket.update_screen(self)
   local stage = self.stage
-  local screen = "stage_rocket_rocket_black.png" -- power off screen
+  local screen = "staged_rocket_rocket_black.png" -- power off screen
   if (stage.battery>0) and stage.screen then
     screen = "staged_rocket_rocket_screen_bck.png"
     local sensors = nil

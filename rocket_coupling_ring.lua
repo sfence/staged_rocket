@@ -18,12 +18,10 @@ minetest.register_entity("staged_rocket:rocket_coupling_ring", {
   sound_handle = nil,
   static_save = true,
   infotext = "A rocket coupling ring",
-  lastvelocity = vector.new(),
   hp = 50,
   color = "#ffe400",
   timeout = 0,
   max_hp = 50,
-  physics = staged_rocket.physics,
   
   is_attached = false,
   
@@ -72,7 +70,15 @@ minetest.register_entity("staged_rocket:rocket_coupling_ring", {
     print(dump(children))
   end,
 
-  on_step = function(self, dtime, moveresults)
+  on_step = function(self, dtime, moveresult)
+    if self.is_attached then
+      return
+    end
+    
+    local curr_pos = self.object:get_pos()
+    local curr_acc = rocket.get_gravity_vector(curr_pos)
+    
+    self.object:set_acceleration(curr_acc)
   end,
 
   on_punch = function(self, puncher, ttime, toolcaps, dir, damage)

@@ -57,13 +57,23 @@ function rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)
     end
     if engine_stage.engine_started then
       if ctrl.sneak and ctrl.aux1 then
+        -- stop engine
         engine_stage.engine_started = false
         if (engine_stage.engine_restart==0) then
           engine_stage.engine_power = 0
         end
       end
     else
-      if ctrl.jump and ctrl.aux1 then
+      if ctrl.jump and ctrl.sneak and ctrl.aux1 then
+        -- separate stage
+        if self.data_stage_1 then
+          print("decouple_stage_1")
+          self:decouple_stage_1(self)
+        elseif self.data_coupling_ring then
+          self:decouple_coupling_ring(self)
+        end
+      elseif ctrl.jump and ctrl.aux1 then
+        -- start engine
         if (engine_stage.engine_power > 0) and (self.stage.battery >= engine_stage.engine_restart) then
           self.stage.battery = self.stage.battery - engine_stage.engine_restart
           if (engine_stage.fuel>0) and (engine_stage.oxidizer>0) then
@@ -74,11 +84,13 @@ function rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)
     end
     if (not ctrl.aux1) then
       if ctrl.jump then
+        -- increase engine thrust
         engine_stage.engine_thrust = engine_stage.engine_thrust + engine_stage.engine_thrust_step*dtime
         if (engine_stage.engine_thrust>1) then
           engine_stage.engine_thrust = 1
         end
       elseif ctrl.sneak then
+        -- decrease engine thrust
         engine_stage.engine_thrust = engine_stage.engine_thrust - engine_stage.engine_thrust_step*dtime
         if (engine_stage.engine_thrust<engine_stage.engine_thrust_min) then
           engine_stage.engine_thrust = engine_stage.engine_thrust_min
