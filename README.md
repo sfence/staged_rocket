@@ -5,9 +5,24 @@ This mod is delivered from nautilus mod by APercy.
 
 Nautilus mod can be found here: https://github.com/APercy/nautilus
 
+Controls
 -----------------------
 
+W (Move forwards) -> change pitch
+S (Move backwards) -> change pitch
+A (Move left) -> roll around vertical rocket axis (change yaw)
+D (Move right) -> roll around vertical rocket axis (change yaw)
+Space (Jump) -> increase engine thrust
+Shift (Sneak) -> decrease engine thrust
+E (Special) -> should be combined with another key
+  + Space + Shift -> separate stage
+  + Space -> start engine
+  + Shift -> stop engine
+
+
 License of source code:
+-----------------------
+
 MIT (see file LICENSE) 
 
 License of media (textures and sounds):
