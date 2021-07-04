@@ -30,7 +30,7 @@ staged_rocket.colors ={
   yellow='#ffe400',
 }
   
-dofile(modpath .. "/rocket.lua")
+dofile(modpath .. "/rocket/rocket.lua")
 
 --
 -- helpers and co.
