@@ -42,5 +42,6 @@ dofile(modpath .. "/rocket_physics.lua")
 dofile(modpath .. "/rocket_stage_1.lua")
 dofile(modpath .. "/rocket_coupling_ring.lua")
 dofile(modpath .. "/rocket_stage_orbital.lua")
+dofile(modpath .. "/rocket_seat.lua")
 dofile(modpath .. "/rocket_items.lua")
 

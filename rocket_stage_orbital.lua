@@ -23,8 +23,12 @@ local function attach_player(self, player)
   ------------------
 
   -- attach the driver
-  player:set_attach(self.object, "", {x = 0, y = 14, z = 4}, {x = -90, y = 0, z = 0})
-  player:set_eye_offset({x = 0, y = 0, z = -3})
+  player:set_attach(self.seat, "", {x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})  
+  player:set_eye_offset({x = 0, y = 0, z = 0})
+  local props = player:get_properties()
+  self.eye_height = props.eye_height
+  props.eye_height = 0
+  player:set_properties(props)
   player:set_look_vertical(-math.pi/2)
   player:set_look_horizontal(1.75*math.pi)
   player_api.player_attached[name] = true
@@ -44,6 +48,9 @@ local function detach_player(self, player)
   local player_name = player:get_player_name()
   player:set_detach()
   player_api.player_attached[player_name] = nil
+  local props = player:get_properties()
+  props.eye_height = self.eye_height
+  player:set_properties(props)
   player:set_eye_offset({x=0,y=0,z=0},{x=0,y=0,z=0})
   player_api.set_animation(player, "stand")
   self.driver_name = nil
@@ -170,6 +177,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     --selectionbox = {-0.6,0.6,-0.6, 0.6,1,0.6},
     visual = "mesh",
     mesh = "staged_rocket_rocket_stage_orbital.b3d",
+    --mesh = "staged_rocket_rocket_stage_orbital.obj",
     textures = {
       "staged_rocket_rocket_metal.png", --bottom cap
       "staged_rocket_rocket_white.png", --cabin painting
@@ -318,6 +326,10 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     rocket.update_air_pointer(self, self.stage)
     -- battery indiator
     rocket.update_battery_pointer(self, self.stage)
+    
+    -- seat
+    self.seat = minetest.add_entity(pos, "staged_rocket:rocket_seat")
+    self.seat:set_attach(self.object, "", {x = 0, y = 14, z = 4}, {x = -90, y = 0, z = 0})
 
     self.object:set_armor_groups({immortal=1})
   end,
@@ -346,7 +358,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     if player then
       local player_attach = player:get_attach()
       if player_attach then
-        if player_attach == self.object then
+        if player_attach == self.seat then
           is_attached = true
         else
           self.driver_name = nil
@@ -393,7 +405,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     end
     --]]
     
-    local on_grear = false
+    local on_gear = false
     local no_rotate = moveresult.collides
     
     if moveresult.collides then

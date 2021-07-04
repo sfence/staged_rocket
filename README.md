@@ -32,6 +32,7 @@ staged\_rocket\_rocket\_coupling\_ring.b3d
 staged\_rocket\_rocket\_stage\_1.b3d
 staged\_rocket\_rocket\_stage\_orbital.b3d
 staged\_rocket\_rocket\_pointer.b3d
+staged\_rocket\_rocket\_pointer.obj -> pointer rotated by 90 degress
 staged\_rocket\_rocket\_black.png
 staged\_rocket\_rocket\_glass.png
 staged\_rocket\_rocket\_grey.png
