@@ -31,6 +31,8 @@ minetest.register_entity("staged_rocket:rocket_coupling_ring", {
     side_drag = 1,
     back_drag = 0.1,
     
+    decouple_energy = 50000,
+    
     drop_disassemble = {},
     drop_destroy = {},
     hull_integrity = nil,

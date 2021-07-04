@@ -110,18 +110,19 @@ local function decouple_stage_1(self)
   local vel = self.object:get_velocity()
   local dir = vector.rotate(vector.new(0,1,0), rot)
   local stage_1 = self.object_stage_1
+  local data_stage_1 = stage_1:get_luaentity()
   self.data_stage_1 = nil
   self.object_stage_1 = nil
   stage_1:set_detach()
-  stage_1:get_luaentity().is_attached = false
+  data_stage_1.is_attached = false
   stage_1:set_pos(vector.add(pos, vector.multiply(dir, -6)))
   stage_1:set_rotation(rot)
   
-  local stage_1_mass = rocket.get_mass(stage_1:get_luaentity())
+  local stage_1_mass = rocket.get_mass(data_stage_1)
   local mass = rocket.get_mass(self)
   
-  stage_1:set_velocity(vector.add(vel, vector.multiply(dir, -rocket.DECOUPLE_ENERGY/stage_1_mass)))
-  self.object:set_velocity(vector.add(vel, vector.multiply(dir, rocket.DECOUPLE_ENERGY/mass)))
+  stage_1:set_velocity(vector.add(vel, vector.multiply(dir, -data_stage_1.stage.decouple_energy/stage_1_mass)))
+  self.object:set_velocity(vector.add(vel, vector.multiply(dir, data_stage_1.stage.decouple_energy/mass)))
 end
 
 -- decouple coupling ring
@@ -131,18 +132,19 @@ local function decouple_coupling_ring(self)
   local vel = self.object:get_velocity()
   local dir = vector.rotate(vector.new(0,1,0), rot)
   local ring = self.object_coupling_ring
+  local data_ring = ring:get_luaentity()
   self.data_coupling_ring = nil
   self.object_coupling_ring = nil
   ring:set_detach()
-  ring:get_luaentity().is_attached = false
+  data_ring.is_attached = false
   ring:set_pos(vector.add(pos, vector.multiply(dir, -6)))
   ring:set_rotation(rot)
   
-  local ring_mass = rocket.get_mass(ring:get_luaentity())
+  local ring_mass = rocket.get_mass(data_ring)
   local mass = rocket.get_mass(self)
   
-  ring:set_velocity(vector.add(vel, vector.multiply(dir, -rocket.DECOUPLE_ENERGY/ring_mass)))
-  self.object:set_velocity(vector.add(vel, vector.multiply(dir, rocket.DECOUPLE_ENERGY/mass)))
+  ring:set_velocity(vector.add(vel, vector.multiply(dir, -data_ring.stage.decouple_energy/ring_mass)))
+  self.object:set_velocity(vector.add(vel, vector.multiply(dir, data_ring.stage.decouple_energy/mass)))
 end
 
 -- norespawn in rocket when death

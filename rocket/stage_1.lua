@@ -90,6 +90,8 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
     side_drag = 10,
     back_drag = 7,
     
+    decouple_energy = 250000,
+    
     fuel = 10000, -- volume of fuel
     consume_fuel = 1, -- fuel quality (higger value, more fuel is required for get same thrust
     require_oxidizer = 1, -- volume of oxidizer required to burn 1 unit of fuel
