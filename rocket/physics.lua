@@ -84,14 +84,14 @@ function rocket.physics(self, dtime, curr_acc, curr_rot)
   
   local curr_pos = self.object:get_pos()
   
-  local preasure = rocket.get_pressure(curr_pos)
-  
   local curr_vel = self.object:get_velocity()
   local curr_dir = vector.rotate(vector.new(0,1,0), curr_rot)
   
+  local air_density = rocket.get_air_density(vector.add(curr_pos, vector.multiply(curr_vel, dtime)))
+  
   local vel = vector.length(curr_vel)
   
-  if (preasure>0) and (vel>0) then
+  if (air_density>0) and (vel>0) then
     local angle = vector.angle(curr_dir, curr_vel)
     local front_sur = 0
     local side_sur = get_key_sum(self, "side_drag")
@@ -110,10 +110,10 @@ function rocket.physics(self, dtime, curr_acc, curr_rot)
     local cos = math.cos(angle)
     local asin = math.abs(sin)
     local acos = math.abs(cos)
-    local side_drag = (acos*front_sur+asin*side_sur)*(sin*vel)*preasure/mass
-    local front_drag = (asin*front_sur+acos*side_sur)*(cos*vel)*preasure/mass
+    local side_drag = rocket.DRAG_COEF*(acos*front_sur+asin*side_sur)*(sin*vel*vel)*air_density/mass
+    local front_drag = rocket.DRAG_COEF*(asin*front_sur+acos*side_sur)*(cos*vel*vel)*air_density/mass
     print("side: "..side_drag..", front: "..front_drag)
-    print("preasure: "..preasure..", vel: "..vel)
+    print("air density: "..air_density..", vel: "..vel)
     
     local side_vec = vector.subtract(curr_vel, vector.multiply(curr_dir, math.sin(angle)*vel))
     print("acc: "..dump(curr_acc))

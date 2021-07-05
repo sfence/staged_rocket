@@ -238,9 +238,9 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
   
   stage = {
     mass = 15000,
-    front_drag = 0.04,
-    side_drag = 0.1,
-    back_drag = 0.06,
+    front_drag = 4,
+    side_drag = 10,
+    back_drag = 6,
     
     fuel = 500,
     consume_fuel = 1,

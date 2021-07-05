@@ -14,14 +14,16 @@ function rocket.get_altitude(pos)
 end
 
 -- default: preasure similar to Earth
-function rocket.get_pressure(pos)
+function rocket.get_air_density(pos)
   -- ph = p0 * e^((-den0*h*g)/p0)
   -- ph - pressure in height y
   -- p0 - pressure in height 0
   -- den0 - density of air in height 0
   -- h - height
   -- g - gravity
-  return 100000*math.exp(-1.4*pos.y*80*9.81/100000)
+  -- 
+  -- density = ph*100000
+  return 1.3*(100000*math.exp(-1.4*pos.y*80*9.81/100000))/100000
 end
 
 -- default: wind is disabled 

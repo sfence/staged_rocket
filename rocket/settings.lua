@@ -2,6 +2,7 @@
 local rocket = staged_rocket.rocket
 
 rocket.COLLISION_SPEED_DAMAGE = minetest.settings:get("staged_rocket_rocket_collision_speed_damage") or 100
+rocket.DRAG_COEF = minetest.settings:get("staged_rocket_rocket_drag_coef") or 100
 
 rocket.STAGE_1_FUEL_CONSUMPTION = minetest.settings:get("staged_rocket_rocket_stage_1_fuel_consumption") or 1
 rocket.STAGE_1_THRUST = minetest.settings:get("staged_rocket_rocket_stage_1_thrust") or 1

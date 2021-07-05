@@ -11,11 +11,8 @@ local function place_coupling_ring(self, itemstack)
   if ring then
     local ent = ring:get_luaentity()
     local item_def = itemstack:get_definition()
-    rocket.update_table(ent.stage, item_def._stage, rocket.update_manual)
-    local wear = (65535-itemstack:get_wear())/65535
-    if (item_def.hull_integrity) then
-      ent.hull_integrity = item_def.hull_integrity*wear
-    end
+    rocket.update_table(ent.stage, item_def._stage, {})
+    rocket.wear_to_hull(itemstack, ent)
     ring:set_yaw(self.object:get_yaw())
     ring:set_attach(self.object, "", {x=0,y=31.5,z=0},{x=0,y=0,z=0})
     ent.is_attached = true
@@ -32,10 +29,8 @@ local function place_stage_orbital(self, itemstack)
   if orbital then
     local ent = orbital:get_luaentity()
     local item_def = itemstack:get_definition()
-    local wear = (65535-itemstack:get_wear())/65535
-    if (item_def.hull_integrity) then
-      ent.hull_integrity = item_def.hull_integrity*wear
-    end
+    rocket.update_table(ent.stage, item_def._stage, {})
+    rocket.wear_to_hull(itemstack, ent)
     orbital:set_yaw(self.object:get_yaw())
     self.object:set_attach(orbital, "", {x=0,y=-60,z=0},{x=0,y=0,z=0})
     self.object_coupling_ring:set_attach(orbital, "", {x=0,y=-28.5,z=0},{x=0,y=0,z=0})
@@ -85,20 +80,20 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
   
   stage = {
     mass = 40000, -- stage mass
-    front_drag = 0.05,
-    side_drag = 0.1,
-    back_drag = 0.07,
+    front_drag = 5,
+    side_drag = 10,
+    back_drag = 7,
     
     decouple_energy = 250000,
     
-    fuel = 5500, -- volume of fuel
+    fuel = 4500, -- volume of fuel
     consume_fuel = 1, -- fuel quality (higger value, more fuel is required for get same thrust
     require_oxidizer = 1, -- volume of oxidizer required to burn 1 unit of fuel
-    max_fuel = 5500, -- fuel capacity
+    max_fuel = 4500, -- fuel capacity
     density_fuel = 10, -- fuel density
-    oxidizer = 12500, -- volume of oxidizer
+    oxidizer = 10000, -- volume of oxidizer
     consume_oxidizer = 2.2, -- oxidizer quality (higger value, more oxidizer is required for get same thrust)
-    max_oxidizer = 12500, -- oxidizer capacity
+    max_oxidizer = 10000, -- oxidizer capacity
     density_oxidizer = 10, -- oxidizer density
     hull_integrity = nil, -- hull integrity
     max_hull = nil, -- max hull integrity
