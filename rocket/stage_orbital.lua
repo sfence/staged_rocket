@@ -47,6 +47,7 @@ local function detach_player(self, player)
   -- detach the player
   local player_name = player:get_player_name()
   player:set_detach()
+  rocket_attached[player_name] = nil
   player_api.player_attached[player_name] = nil
   local props = player:get_properties()
   props.eye_height = self.eye_height
@@ -100,6 +101,7 @@ local function stage_destroy(self, overload)
   if self.pointer_battery then
     self.pointer_battery:remove()
   end
+  self.seat:remove()
   rocket.destroy(self, overload)
 end
 
@@ -217,7 +219,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
   color = "#ffe400",
   timeout = 0;
   max_hp = 50,
-  --water_drag = 0,
+  
   breath_time = 0,
   drown_time = 0,
   sound_time = 0,
@@ -236,18 +238,18 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
   
   stage = {
     mass = 15000,
-    front_drag = 4,
-    side_drag = 10,
-    back_drag = 6,
+    front_drag = 0.04,
+    side_drag = 0.1,
+    back_drag = 0.06,
     
-    fuel = 5000,
+    fuel = 500,
     consume_fuel = 1,
-    require_oxidizer = 3,
-    max_fuel = 5000,
+    require_oxidizer = 2.2,
+    max_fuel = 500,
     density_fuel = 10,
-    oxidizer = 15000,
+    oxidizer = 1100,
     consume_oxidizer = 1,
-    max_oxidizer = 15000,
+    max_oxidizer = 1100,
     density_oxidizer = 10,
     air = rocket.STAGE_ORBITAL_REAIR_ON_AIR, -- air for crew
     max_air = 3600,
@@ -260,8 +262,8 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     drop_disassemble = {},
     drop_destroy = {},
     
-    engine_power = 1500000, -- can be replaced by zero until engines will be installed
-    engine_consume = 150, -- how much fuel engine consume
+    engine_power = 300000, -- can be replaced by zero until engines will be installed
+    engine_consume = 30, -- how much fuel engine consume
     engine_started = false, -- is engine started?
     engine_restart = 1, -- energy for engine start
     engine_thrust = 1, -- set engine thurst

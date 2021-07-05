@@ -21,7 +21,7 @@ function rocket.get_pressure(pos)
   -- den0 - density of air in height 0
   -- h - height
   -- g - gravity
-  return 1000*math.exp(-1.4*pos.y*80*9.81/1000)
+  return 100000*math.exp(-1.4*pos.y*80*9.81/100000)
 end
 
 -- default: wind is disabled 

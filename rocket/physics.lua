@@ -93,22 +93,38 @@ function rocket.physics(self, dtime, curr_acc, curr_rot)
   
   if (preasure>0) and (vel>0) then
     local angle = vector.angle(curr_dir, curr_vel)
-    local front_drag = 0
-    local side_drag = get_key_sum(self, "side_drag")
-    local fix_angle = -1
+    local front_sur = 0
+    local side_sur = get_key_sum(self, "side_drag")
     if (angle<(0.5*math.pi)) then
-      front_drag = get_key_sum(self, "front_drag")
+      front_sur = self.stage.front_drag
     else
-      front_drag = -get_key_sum(self, "back_drag")
-      fix_angle = 1
+      front_sur = self.stage.back_drag
+      if self.data_stage_1 then
+        front_sur = self.data_stage_1.back_drag
+      elseif self.data_coupling_ring then
+        front_sur = front_sur + self.data_coupling_ring.back_drag
+      end
     end
-    side_drag = math.sin(angle)*vel*side_drag*preasure
-    front_drag = math.cos(angle)*vel*front_drag*preasure
+    print("side: "..side_sur..", front: "..front_sur..", angle: "..angle)
+    local sin = math.sin(angle)
+    local cos = math.cos(angle)
+    local asin = math.abs(sin)
+    local acos = math.abs(cos)
+    local side_drag = (acos*front_sur+asin*side_sur)*(sin*vel)*preasure/mass
+    local front_drag = (asin*front_sur+acos*side_sur)*(cos*vel)*preasure/mass
+    print("side: "..side_drag..", front: "..front_drag)
+    print("preasure: "..preasure..", vel: "..vel)
+    
+    local side_vec = vector.subtract(curr_vel, vector.multiply(curr_dir, math.sin(angle)*vel))
+    print("acc: "..dump(curr_acc))
+    curr_acc = vector.add(curr_acc, vector.multiply(curr_dir, -front_drag))
+    curr_acc = vector.add(curr_acc, vector.multiply(vector.normalize(side_vec), -side_drag))
+    print("acc: "..dump(curr_acc))
     
     if (side_drag>0) then
-      fix_angle = fix_angle*dtime*side_drag/mass
-      local normal = vector.cross(curr_dir, curr_vel)
-      vector.rotate_around_axis(curr_dir, normal, fix_angle)
+      --local fix_angle = fix_angle*dtime*side_drag/mass
+      --local normal = vector.cross(curr_dir, curr_vel)
+      --vector.rotate_around_axis(curr_dir, normal, fix_angle)
     end
   end
   

@@ -15,7 +15,6 @@ local function place_coupling_ring(self, itemstack)
     if (item_def.hull_integrity) then
       ent.hull_integrity = item_def.hull_integrity*wear
     end
-    ent.stage.item = itemstack:to_string()
     ring:set_yaw(self.object:get_yaw())
     ring:set_attach(self.object, "", {x=0,y=31.5,z=0},{x=0,y=0,z=0})
     ent.is_attached = true
@@ -36,7 +35,6 @@ local function place_stage_orbital(self, itemstack)
     if (item_def.hull_integrity) then
       ent.hull_integrity = item_def.hull_integrity*wear
     end
-    ent.stage.item = itemstack:to_string()
     orbital:set_yaw(self.object:get_yaw())
     self.object:set_attach(orbital, "", {x=0,y=-60,z=0},{x=0,y=0,z=0})
     self.object_coupling_ring:set_attach(orbital, "", {x=0,y=-28.5,z=0},{x=0,y=0,z=0})
@@ -85,29 +83,29 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
   object_coupling_ring = nil,
   
   stage = {
-    mass = 20000, -- stage mass
-    front_drag = 5,
-    side_drag = 10,
-    back_drag = 7,
+    mass = 40000, -- stage mass
+    front_drag = 0.05,
+    side_drag = 0.1,
+    back_drag = 0.07,
     
     decouple_energy = 250000,
     
-    fuel = 10000, -- volume of fuel
+    fuel = 5500, -- volume of fuel
     consume_fuel = 1, -- fuel quality (higger value, more fuel is required for get same thrust
     require_oxidizer = 1, -- volume of oxidizer required to burn 1 unit of fuel
-    max_fuel = 10000, -- fuel capacity
+    max_fuel = 5500, -- fuel capacity
     density_fuel = 10, -- fuel density
-    oxidizer = 30000, -- volume of oxidizer
-    consume_oxidizer = 3, -- oxidizer quality (higger value, more oxidizer is required for get same thrust)
-    max_oxidizer = 30000, -- oxidizer capacity
+    oxidizer = 12500, -- volume of oxidizer
+    consume_oxidizer = 2.2, -- oxidizer quality (higger value, more oxidizer is required for get same thrust)
+    max_oxidizer = 12500, -- oxidizer capacity
     density_oxidizer = 10, -- oxidizer density
     hull_integrity = nil, -- hull integrity
     max_hull = nil, -- max hull integrity
     drop_disassemble = {}, -- drop if dissassemble
     drop_destroy = {}, -- drop if destroyed
     
-    engine_power = 2500000, -- can be replaced by zero until engines will be installed
-    engine_consume = 250, -- how much fuel engine consume
+    engine_power = 800000, -- can be replaced by zero until engines will be installed
+    engine_consume = 100, -- how much fuel engine consume
     engine_started = false, -- if engine is running
     engine_restart = 0, -- energy for engine start, 0 for one time startable engine
     engine_thrust = 1, -- set engine thurst
