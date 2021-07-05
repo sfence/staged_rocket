@@ -91,7 +91,7 @@ function rocket.on_place_stage_orbital(itemstack, placer, pointed_thing)
     local node_below = minetest.get_node(pointed_pos).name
     local nodedef = minetest.registered_nodes[node_below]
     if nodedef.liquidtype == "none" then
-      pointed_pos.y = pointed_pos.y + 3.5
+      pointed_pos.y = pointed_pos.y + 3.6
       local rocket_stage = minetest.add_entity(pointed_pos, "staged_rocket:rocket_stage_orbital")
       if rocket_stage and placer then
         local ent = rocket_stage:get_luaentity()
