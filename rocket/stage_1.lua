@@ -11,6 +11,7 @@ local function place_coupling_ring(self, itemstack)
   if ring then
     local ent = ring:get_luaentity()
     local item_def = itemstack:get_definition()
+    rocket.update_table(ent.stage, item_def._stage, rocket.update_manual)
     local wear = (65535-itemstack:get_wear())/65535
     if (item_def.hull_integrity) then
       ent.hull_integrity = item_def.hull_integrity*wear

@@ -33,28 +33,44 @@ function rocket.restore_coupling_ring(parent, data, dtime_s)
   end
 end
 
+-- weat functions
+function rocket.wear_to_hull(itemstack, entity)
+  local wear = (65535-itemstack:get_wear())/65535
+  if entity.stage.hull_integrity then
+    entity.stage.hull_integrity = entity.stage.max_hull*wear
+  end
+end
+function rocket.hull_to_wear(entity, itemstack)
+  if entity.stage.hull_integrity and entity.stage.max_hull then
+    local hull_integrity = entity.stage.hull_integrity
+    if (hull_integrity<0) then
+      hull_integrity = 0
+    end
+    if (hull_integrity>entity.stage.max_hull) then
+      hull_integrity = entity.stage_max_hull
+    end
+    local wear = math.floor(65535*(1-(hull_integrity/entity.stage.max_hull)))
+    itemstack:set_wear(wear)
+  end
+end
+
 -- on place functions
-function rocket.on_place_stage1(itemstack, placer, pointed_thing)
+function rocket.on_place_stage_1(itemstack, placer, pointed_thing)
   if (pointed_thing.type == "node") then
     local pointed_pos = pointed_thing.under
     local node_below = minetest.get_node(pointed_pos).name
     local nodedef = minetest.registered_nodes[node_below]
     if nodedef.liquidtype == "none" then
       pointed_pos.y = pointed_pos.y + 3.5
-      local boat = minetest.add_entity(pointed_pos, "staged_rocket:rocket_stage_1")
-      if boat and placer then
-        local ent = boat:get_luaentity()
+      local rocket_stage = minetest.add_entity(pointed_pos, "staged_rocket:rocket_stage_1")
+      if rocket_stage and placer then
+        local ent = rocket_stage:get_luaentity()
         local owner = placer:get_player_name()
         local item_def = itemstack:get_definition()
         ent.owner = owner
-        ent.surface_level = pointed_thing.under.y
         rocket.update_table(ent.stage, item_def._stage)
-        local wear = (65535-itemstack:get_wear())/65535
-        if item_def._stage.hull_integrity then
-          ent.stage.hull_integrity = item_def._stage.hull_integrity*wear
-        end
-        ent.stage.drop_item = itemstack:to_string()
-        boat:set_yaw(placer:get_look_horizontal())
+        rocket.wear_to_hull(itemstack, ent)
+        rocket_stage:set_yaw(placer:get_look_horizontal())
         itemstack:take_item()
 
         local properties = ent.object:get_properties()
@@ -69,19 +85,48 @@ function rocket.on_place_stage1(itemstack, placer, pointed_thing)
     return itemstack
   end
 end
+function rocket.on_place_stage_orbital(itemstack, placer, pointed_thing)
+  if (pointed_thing.type == "node") then
+    local pointed_pos = pointed_thing.under
+    local node_below = minetest.get_node(pointed_pos).name
+    local nodedef = minetest.registered_nodes[node_below]
+    if nodedef.liquidtype == "none" then
+      pointed_pos.y = pointed_pos.y + 3.5
+      local rocket_stage = minetest.add_entity(pointed_pos, "staged_rocket:rocket_stage_orbital")
+      if rocket_stage and placer then
+        local ent = rocket_stage:get_luaentity()
+        local owner = placer:get_player_name()
+        local item_def = itemstack:get_definition()
+        ent.owner = owner
+        rocket.update_table(ent.stage, item_def._stage)
+        rocket.wear_to_hull(itemstack, ent)
+        rocket_stage:set_yaw(placer:get_look_horizontal())
+        itemstack:take_item()
+
+        local properties = ent.object:get_properties()
+        properties.infotext = owner .. " rocket stage orbital"
+        if (ent.stage.engine_power==0) then
+          properties.textures[19] = "staged_rocket_rocket_transparent.png"
+        end
+        ent.object:set_properties(properties)
+      end
+    end
+
+    return itemstack
+  end
+end
 
 -- droping
-function rocket.drop_items(self, drop_list, curr_pos, explostion)
+function rocket.drop_items(self, drop_list, explosion)
   local curr_pos = self.object:get_pos()
   local curr_vel = self.object:get_velocity()
   local curr_g = rocket.get_gravity_vector(curr_pos)
+  print(dump(drop_list))
   for _, drop in pairs(drop_list) do
+    print(dump(drop))
     local stack = ItemStack(drop)
     if minetest.registered_tools[stack:get_name()] then
-      if self.stage.hull_integrity then
-        local wear = math.floor(65535*(1-(self.stage.hull_integrity/self.stage.max_integrity)))
-        stack:set_wear(wear)
-      end
+      rocket.hull_to_wear(self, stack)
     end
     local item = minetest.add_item({x=curr_pos.x+math.random()-0.5,y=curr_pos.y,z=curr_pos.z+math.random()-0.5}, stack)
     if item then
@@ -118,28 +163,14 @@ function rocket.destroy(self, overload)
     self.driver_name = nil
   end
 
-  local pos = self.object:get_pos()
-
-  self.object:remove()
-
   if overload then
-    local stack = ItemStack(self.stage.item)
-    local item_def = stack:get_definition()
-    
-    if item_def.overload_drop then
-      for _,item in pairs(item_def.overload_drop) do
-        minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5},item)
-      end
-      return
-    end
+    -- explosion should be calculated here
+    rocket.drop_items(self, self.stage.drop_destroy, 5)
+  else
+    rocket.drop_items(self, self.stage.drop_disassemble, 0)
   end
-  local stack = ItemStack(self.stage.item)
-  local item_def = stack:get_definition()
-  if self.hull_integrity then
-    local boat_wear = math.floor(65535*(1-(self.hull_integrity/item_def.hull_integrity)))
-    stack:set_wear(boat_wear)
-  end
-  minetest.add_item({x=pos.x+math.random()-0.5,y=pos.y,z=pos.z+math.random()-0.5}, stack)
+  
+  self.object:remove()
 end
 
 -- help functions

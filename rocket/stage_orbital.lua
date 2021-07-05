@@ -30,7 +30,7 @@ local function attach_player(self, player)
   props.eye_height = 0
   player:set_properties(props)
   player:set_look_vertical(-math.pi/2)
-  player:set_look_horizontal(1.75*math.pi)
+  player:set_look_horizontal(self.object:get_yaw())
   player_api.player_attached[name] = true
   -- make the driver sit
   minetest.after(0.2, function()
@@ -256,11 +256,11 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     density_air = 1,
     battery = 60,
     max_battery = 60,
-    hull_integrity = 100,
-    max_hull = 100,
+    hull_integrity = nil,
+    max_hull = nil,
     gear_limit = 600, -- max damage which gear is able to absorb
-    drop_disassemble = {},
-    drop_destroy = {},
+    drop_disassemble = {"staged_rocket:rocket_stage_orbital"},
+    drop_destroy = {"default:steel_ingot"},
     
     engine_power = 300000, -- can be replaced by zero until engines will be installed
     engine_consume = 30, -- how much fuel engine consume

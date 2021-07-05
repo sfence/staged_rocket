@@ -35,8 +35,8 @@ minetest.register_entity("staged_rocket:rocket_coupling_ring", {
     
     drop_disassemble = {"staged_rocket:rocket_coupling_ring"},
     drop_destroy = {"default:steel_ingot"},
-    hull_integrity = 200,
-    max_hull = 200,
+    hull_integrity = nil,
+    max_hull = nil,
   },
   
   get_staticdata = function(self)

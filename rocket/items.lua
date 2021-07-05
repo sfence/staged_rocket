@@ -14,6 +14,8 @@ minetest.register_tool("staged_rocket:rocket_stage_1", {
   inventory_image = "staged_rocket_rocket_stage_1.png",
   
   _stage = {
+    hull_integrity = 100,
+    max_hull = 100,
     drop_disassemble = {"staged_rocket:rocket_stage_1"},
     drop_destroy = {"default:steel_ingot"},
   },
@@ -31,10 +33,6 @@ minetest.register_tool("staged_rocket:rocket_stage_1", {
           local owner = placer:get_player_name()
           local item_def = itemstack:get_definition()
           ent.owner = owner
-          ent.surface_level = pointed_thing.under.y
-          if staged_rocket.hull_deep_limit then
-            ent.deep_limit = item_def.deep_limit
-          end
           rocket.update_table(ent.stage, item_def._stage, update_manual)
           local wear = (65535-itemstack:get_wear())/65535
           if item_def._stage.hull_integrity then
@@ -59,6 +57,8 @@ minetest.register_tool("staged_rocket:rocket_coupling_ring", {
   inventory_image = "staged_rocket_rocket_coupling_ring.png",
   
   _stage = {
+    hull_integrity = 200,
+    max_hull = 200,
     drop_disassemble = {"staged_rocket:rocket_coupling_ring"},
     drop_destroy = {"default:steel_ingot"},
   },
@@ -107,6 +107,8 @@ minetest.register_tool("staged_rocket:rocket_stage_orbital", {
   inventory_image = "staged_rocket_rocket_stage_orbital.png",
   
   _stage = {
+    hull_integrity = 100,
+    max_hull = 100,
     drop_disassemble = {"staged_rocket:rocket_stage_orbital"},
     drop_destroy = {"default:steel_ingot"},
   },
@@ -124,10 +126,7 @@ minetest.register_tool("staged_rocket:rocket_stage_orbital", {
           local owner = placer:get_player_name()
           local item_def = itemstack:get_definition()
           ent.owner = owner
-          ent.surface_level = pointed_thing.under.y
-          if staged_rocket.hull_deep_limit then
-            ent.deep_limit = item_def.deep_limit
-          end
+          rocket.update_table(ent.stage, item_def._stage, update_manual)
           local wear = (65535-itemstack:get_wear())/65535
           if item_def.hull_integrity then
             ent.stage.hull_integrity = item_def.hull_integrity*wear
