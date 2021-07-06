@@ -121,9 +121,7 @@ function rocket.drop_items(self, drop_list, explosion)
   local curr_pos = self.object:get_pos()
   local curr_vel = self.object:get_velocity()
   local curr_g = rocket.get_gravity_vector(curr_pos)
-  print(dump(drop_list))
   for _, drop in pairs(drop_list) do
-    print(dump(drop))
     local stack = ItemStack(drop)
     if minetest.registered_tools[stack:get_name()] then
       rocket.hull_to_wear(self, stack)
@@ -143,24 +141,44 @@ function rocket.drop_items(self, drop_list, explosion)
   end
 end
 
--- destroy the boat
+-- attach stage
+function rocket.set_attach(object, parent, bone, position, rotation, forced_visible)
+  object:set_attach(parent, bone, position, rotation. forced_visible)
+  local ent = object:get_luaentity()
+  ent.is_attached = true
+  local props = object:get_properties()
+  props.static_save = true
+  object:set_properties(props)
+end
+
+-- detach stage
+function rocket.set_detach(object)
+  object:set_detach()
+  local ent = object:get_luaentity()
+  ent.is_attached = false
+  local props = object:get_properties()
+  props.static_save = true
+  object:set_properties(props)
+end
+
+-- leave child
+function rocket.leave_child(parent, child)
+  local ent = parent:get_luaentity()
+  if (ent.object_stage_1==child) then
+    ent.data_stage_1 = nil
+    ent.object_stage_1 = nil
+  elseif (ent.object_coupling_ring==child) then
+    ent.data_coupling_ring = nil
+    ent.object_coupling_ring = nil
+  end
+  rocket.set_detach(child)
+end
+
+-- destroy stage
 function rocket.destroy(self, overload)
   if self.sound_handle then
     minetest.sound_stop(self.sound_handle)
     self.sound_handle = nil
-  end
-
-  if self.driver_name then
-    local driver = minetest.get_player_by_name(self.driver_name)
-    -- prevent error when submarine of unlogged driver is destroied by preasure
-    if driver then
-      driver:set_detach()
-      driver:set_eye_offset({x = 0, y = 0, z = 0}, {x = 0, y = 0, z = 0})
-      -- player should stand again
-      player_api.set_animation(driver, "stand")
-    end
-    player_api.player_attached[self.driver_name] = nil
-    self.driver_name = nil
   end
 
   if overload then

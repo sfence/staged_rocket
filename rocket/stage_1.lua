@@ -45,6 +45,33 @@ local function place_stage_orbital(self, itemstack)
   end
 end
 
+--
+local function stage_destroy(self, overload)
+  local parent = self.object:get_attach()
+  if parent then
+    rocket.leave_child(parent, self.object)
+  end
+  if self.data_coupling_ring then
+    local pos = self.object:get_pos()
+    local rot = self.object:get_rotation()
+    local vel = self.object:get_velocity()
+    local acc = self.object:get_acceleration()
+    local dir = vector.rotate(vector.new(0,1,0),rot)
+    rocket.set_detach(self.object_coupling_ring)
+    self.object_coupling_ring:set_pos(vector.add(pos,vector.multiply(dir, 3.15)))
+    self.object_coupling_ring:set_rotation(rot)
+    self.object_coupling_ring:set_velocity(vel)
+    self.object_coupling_ring:set_acceleration(acc)
+    local ring = self.object_coupling_ring:get_luaentity()
+    ring.is_attached = false
+    
+    self.data_coupling_ring = nil
+    self.object_coupling_ring = nil
+  end
+  
+  rocket.destroy(self, overload)
+end
+
 minetest.register_entity("staged_rocket:rocket_stage_1", {
   initial_properties = {
     physical = true,
@@ -248,7 +275,7 @@ minetest.register_entity("staged_rocket:rocket_stage_1", {
       end
 
       if self.hp <= 0 then
-        rocket.destroy(self, false)
+        stage_destroy(self, false)
       end
 
     end

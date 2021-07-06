@@ -2,6 +2,16 @@
 local rocket = staged_rocket.rocket
 
 --
+local function stage_destroy(self, overload)
+  local parent = self.object:get_attach()
+  if parent then
+    rocket.leave_child(parent, self.object)
+  end
+  
+  rocket.destroy(self, overload)
+end
+
+--
 -- entity
 --
 
@@ -151,7 +161,7 @@ minetest.register_entity("staged_rocket:rocket_coupling_ring", {
       end
 
       if self.hp <= 0 then
-        rocket.destroy(self, false)
+        stage_destroy(self, false)
       end
 
     end

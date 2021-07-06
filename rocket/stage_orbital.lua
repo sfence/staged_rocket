@@ -88,7 +88,7 @@ local function open_airlock(self, player)
 end
 
 --
-local function stage_destroy(self, overload)
+local function stage_destroy(self, player, overload)
   if self.pointer_fuel then
     self.pointer_fuel:remove()
   end
@@ -101,7 +101,43 @@ local function stage_destroy(self, overload)
   if self.pointer_battery then
     self.pointer_battery:remove()
   end
+  if player then
+    detach_player(self, player)
+  end
   self.seat:remove()
+  
+  if self.data_coupling_ring then
+    local pos = self.object:get_pos()
+    local rot = self.object:get_rotation()
+    local vel = self.object:get_velocity()
+    local acc = self.object:get_acceleration()
+    local dir = vector.rotate(vector.new(0,1,0),rot)
+    if self.data_stage_1 then
+      rocket.set_detach(self.object_stage_1)
+      self.object_coupling_ring:set_attach(self.object_stage_1, "", vector.new(0,31.5,0),vector.new(0,0,0))
+      self.object_stage_1:set_pos(vector.add(pos,vector.multiply(dir, -6)))
+      self.object_stage_1:set_rotation(rot)
+      self.object_stage_1:set_velocity(vel)
+      self.object_stage_1:set_acceleration(acc)
+      local stage_1 = self.object_stage_1:get_luaentity()
+      stage_1.data_coupling_ring = self.data_coupling_ring
+      stage_1.object_coupling_ring = self.object_coupling_ring
+      self.data_coupling_ring = nil
+      self.object_coupling_ring = nil
+      self.data_stage_1 = nil
+      self.object_stage_1 = nil
+    else
+      rocket.set_detach(self.object_coupling_ring)
+      self.object_coupling_ring:set_pos(vector.add(pos,vector.multiply(dir, -2.85)))
+      self.object_coupling_ring:set_rotation(rot)
+      self.object_coupling_ring:set_velocity(vel)
+      self.object_coupling_ring:set_acceleration(acc)
+      local ring = self.object_coupling_ring:get_luaentity()
+      self.data_coupling_ring = nil
+      self.object_coupling_ring = nil
+    end
+  end
+  
   rocket.destroy(self, overload)
 end
 
@@ -286,6 +322,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
       owner = self.owner,
       hp = self.hp,
       color = self.color,
+      last_vel = self.last_vel,
       driver_name = self.driver_name,
       data_stage_1 = self.data_stage_1,
       data_coupling_ring = self.data_coupling_ring,
@@ -295,10 +332,13 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
 
   on_activate = function(self, staticdata, dtime_s)
     if staticdata ~= "" and staticdata ~= nil then
+      self.last_vel = self.object:get_velocity()
+      
       local data = minetest.deserialize(staticdata) or {}
       self.owner = data.owner
       self.hp = data.hp
       self.color = data.color
+      self.last_vel = data.last_vel
       self.driver_name = data.driver_name
       self.stage = data.stage
       local properties = self.object:get_properties()
@@ -311,7 +351,6 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
         rocket.restore_stage_1(self, data.data_stage_1, dtime_s)
       end
       
-      self.last_vel = self.object:get_velocity()
     end
 
     --staged_rocket.paint(self, self.color)
@@ -470,7 +509,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
               fade = 0.0,
               pitch = 1.0,
             })
-            stage_destroy(self, true)
+            stage_destroy(self, player, true)
             return
           end
         end
@@ -633,7 +672,7 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
       end
 
       if self.hp <= 0 then
-        stage_destroy(self, false)
+        stage_destroy(self, player, false)
       end
 
     end
