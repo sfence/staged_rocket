@@ -434,10 +434,10 @@ minetest.register_entity("staged_rocket:rocket_stage_orbital", {
     end
     -- check for collisions via raycast
     --[[
-    local pos_top = vector.add(curr_pos, vector.multiply(curr_dir, 3))
-    local pos_bottom = -3
+    local pos_top = vector.add(curr_pos, vector.multiply(curr_dir, 2))
+    local pos_bottom = -2
     if self.data_stage_1 then
-      pos_bottom = -9
+      pos_bottom = -7.5
     end
     pos_bottom = vector.add(curr_pos, vector.multiply(curr_dir, pos_bottom))
     local raycast = minetest.raycast(pos_top, pos_bottom, false, false)

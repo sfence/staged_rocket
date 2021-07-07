@@ -15,7 +15,8 @@ D (Move right) -> roll around vertical rocket axis (change yaw)
 Space (Jump) -> increase engine thrust  
 Shift (Sneak) -> decrease engine thrust  
 E (Special) -> should be combined with another key  
-  + Space + Shift -> separate stage  
+  + A -> separate stage 1
+  + D -> separate coupling ring 
   + Space -> start engine  
   + Shift -> stop engine  
 

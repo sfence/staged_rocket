@@ -44,12 +44,12 @@ function rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)
       local up = vector.cross(forward, right)
       rot = vector.dir_to_rotation(forward, up)
     end
-    if ctrl.right then
+    if ctrl.right and (not ctrl.aux1) then
       local forward = vector.rotate({x=0,y=0,z=1},curr_rot)
       local up = vector.rotate({x=0,y=1,z=0},curr_rot)
       forward = vector.rotate_around_axis(forward, up, 1*dtime)
       rot = vector.dir_to_rotation(forward, up)
-    elseif ctrl.left then
+    elseif ctrl.left and (not ctrl.aux1) then
       local forward = vector.rotate({x=0,y=0,z=1},curr_rot)
       local up = vector.rotate({x=0,y=1,z=0},curr_rot)
       forward = vector.rotate_around_axis(forward, up, -1*dtime)
@@ -64,15 +64,19 @@ function rocket.control(self, dtime, curr_pos, curr_vel, curr_rot, curr_acc)
         end
       end
     else
-      if ctrl.jump and ctrl.sneak and ctrl.aux1 then
+      if ctrl.left and ctrl.aux1 then
         -- separate stage
         if self.data_stage_1 then
-          print("decouple_stage_1")
           self:decouple_stage_1(self)
-        elseif self.data_coupling_ring then
+        end
+      end
+      if ctrl.right and ctrl.aux1 then
+        -- separate stage
+        if (self.data_stage_1==nil) and self.data_coupling_ring then
           self:decouple_coupling_ring(self)
         end
-      elseif ctrl.jump and ctrl.aux1 then
+      end
+      if ctrl.jump and ctrl.aux1 then
         -- start engine
         if (engine_stage.engine_power > 0) and (self.stage.battery >= engine_stage.engine_restart) then
           self.stage.battery = self.stage.battery - engine_stage.engine_restart
